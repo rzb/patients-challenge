@@ -21,12 +21,17 @@ class PatientController extends Controller
         );
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StorePatientRequest $request)
+    public function store(StorePatientRequest $request): PatientResource
     {
-        //
+        $patient = Patient::make($request->except('picture', 'address'));
+
+        $patient->picture = $request->file('picture')->store('pictures');
+
+        $patient->save();
+
+        $patient->address()->create($request->input('address'));
+
+        return PatientResource::make($patient->load('address'));
     }
 
     public function show(Patient $patient): PatientResource

@@ -2,9 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\Address;
 use App\Models\Patient;
 use Generator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\TestCase;
 
@@ -108,6 +111,36 @@ class PatientControllerTest extends TestCase
                         ->etc(),
                     )
             );
+    }
+
+    /** @test */
+    public function it_stores_a_patient()
+    {
+        Storage::fake();
+        $patient = Patient::factory()->make();
+        $file = UploadedFile::fake()->image($patient->picture);
+        $address = Address::factory()->make();
+
+        $response = $this->postJson('/api/patients', [
+            'picture' => $file,
+            'name' => $patient->name,
+            'mothers_name' => $patient->mothers_name,
+            'birthdate' => $patient->birthdate->format('Y-m-d'),
+            'cpf' => $patient->cpf,
+            'cns' => $patient->cns,
+            'address' => [
+                'cep' => $address->cep,
+                'street' => $address->street,
+                'number' => $address->number,
+                'complement' => $address->complement,
+                'neighborhood' => $address->neighborhood,
+                'city' => $address->city,
+                'uf' => $address->uf,
+            ],
+        ]);
+
+        $response->assertCreated();
+        Storage::disk()->assertExists('pictures/' . $file->hashName());
     }
 
     public function provideFilter(): Generator

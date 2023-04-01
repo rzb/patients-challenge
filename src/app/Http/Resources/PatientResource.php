@@ -19,10 +19,11 @@ class PatientResource extends JsonResource
             'picture' => $this->picture,
             'name' => $this->name,
             'mothers_name' => $this->mothers_name,
-            'birthdate' => $this->birthdate,
+            'birthdate' => $this->birthdate->format('Y-m-d'),
             'cpf' => $this->cpf,
             'cns' => $this->cns,
             'created_at' => $this->created_at,
+            'address' => new AddressResource($this->whenLoaded('address')),
         ];
     }
 }

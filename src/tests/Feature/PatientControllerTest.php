@@ -74,6 +74,42 @@ class PatientControllerTest extends TestCase
             );
     }
 
+    /** @test */
+    public function it_shows_a_patient_by_id()
+    {
+        $patient = Patient::factory()->hasAddress()->create();
+
+        $response = $this->getJson("/api/patients/{$patient->id}");
+
+        $response
+            ->assertOk()
+            ->assertJson(
+                fn (AssertableJson $json) => $json
+                    ->has('data', fn (AssertableJson $json) => $json
+                        ->whereAll([
+                            'id' => $patient->id,
+                            'picture' => $patient->picture,
+                            'name' => $patient->name,
+                            'mothers_name' => $patient->mothers_name,
+                            'birthdate' => $patient->birthdate->format('Y-m-d'),
+                            'cpf' => $patient->cpf,
+                            'cns' => $patient->cns,
+                            'created_at' => $patient->created_at->toISOString(),
+                            'address' => [
+                                'cep' => $patient->address->cep,
+                                'street' => $patient->address->street,
+                                'number' => $patient->address->number,
+                                'complement' => $patient->address->complement,
+                                'neighborhood' => $patient->address->neighborhood,
+                                'city' => $patient->address->city,
+                                'uf' => $patient->address->uf,
+                            ],
+                        ])
+                        ->etc(),
+                    )
+            );
+    }
+
     public function provideFilter(): Generator
     {
         yield 'Search by name' => ['name', fake()->unique()->name];

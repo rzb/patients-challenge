@@ -29,12 +29,9 @@ class PatientController extends Controller
         //
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Patient $patient)
+    public function show(Patient $patient): PatientResource
     {
-        //
+        return PatientResource::make($patient->load('address'));
     }
 
     /**

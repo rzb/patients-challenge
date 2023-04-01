@@ -14,7 +14,10 @@ class PatientController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         return PatientResource::collection(
-            Patient::paginate($request->input('per_page'))
+            Patient::when($request->input('term'), fn ($query, $term) => $query
+                ->where('name', $term)
+                ->orWhere('cpf', $term)
+            )->paginate($request->input('per_page'))
         );
     }
 

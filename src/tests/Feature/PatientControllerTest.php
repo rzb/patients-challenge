@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Patient;
+use Generator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\TestCase;
@@ -20,20 +21,19 @@ class PatientControllerTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertJson(
-                fn (AssertableJson $json) => $json
-                    ->has('data', 10, fn ($json) => $json
-                        ->hasAll(
-                            'id',
-                            'picture',
-                            'name',
-                            'mothers_name',
-                            'birthdate',
-                            'cpf',
-                            'cns',
-                            'created_at',
-                        )
-                    )->etc()
+            ->assertJson(fn (AssertableJson $json) => $json
+                ->has('data', 10, fn ($json) => $json
+                    ->hasAll(
+                        'id',
+                        'picture',
+                        'name',
+                        'mothers_name',
+                        'birthdate',
+                        'cpf',
+                        'cns',
+                        'created_at',
+                    )
+                )->etc()
             );
     }
 
@@ -48,11 +48,36 @@ class PatientControllerTest extends TestCase
         $response = $this->json('GET', '/api/patients', compact('per_page'));
 
         $response
-            ->assertJson(
-                fn (AssertableJson $json) => $json
-                    ->has('data', $expectedPerPage)
-                    ->hasAll('links', 'meta')
-                    ->etc(),
+            ->assertJson(fn (AssertableJson $json) => $json
+                ->has('data', $expectedPerPage)
+                ->hasAll('links', 'meta')
+                ->etc(),
             );
+    }
+
+       /**
+        * @test
+        * @dataProvider provideFilter
+        */
+    public function it_filters_patients($column, $term)
+    {
+        Patient::factory()->create([$column => $term]);
+        Patient::factory(9)->create();
+
+        $response = $this->json('GET', '/api/patients', compact('term'));
+
+        $response
+            ->assertJson(fn (AssertableJson $json) => $json
+                ->count('data', 1)
+                ->where("data.0.$column", $term)
+                ->etc()
+            );
+    }
+
+    public function provideFilter(): Generator
+    {
+        yield 'Search by name' => ['name', fake()->unique()->name];
+
+        yield 'Search by CPF' => ['cpf', '99999999999'];
     }
 }

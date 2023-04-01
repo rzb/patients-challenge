@@ -9,6 +9,7 @@ use App\Models\Patient;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Support\Str;
 
 class PatientController extends Controller
 {
@@ -17,7 +18,7 @@ class PatientController extends Controller
         return PatientResource::collection(
             Patient::when($request->input('term'), fn ($query, $term) => $query
                 ->where('name', $term)
-                ->orWhere('cpf', $term)
+                ->orWhere('cpf', Str::removeNonDigits($term))
             )->paginate($request->input('per_page'))
         );
     }

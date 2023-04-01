@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Address;
 use App\Models\Patient;
-use Generator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -58,21 +57,38 @@ class PatientControllerTest extends TestCase
             );
     }
 
-       /**
-        * @test
-        * @dataProvider provideFilter
-        */
-    public function it_filters_patients($column, $term)
+   /** @test */
+    public function it_filters_patients_by_name()
     {
-        Patient::factory()->create([$column => $term]);
+        $patient = Patient::factory()->create();
         Patient::factory(9)->create();
 
-        $response = $this->json('GET', '/api/patients', compact('term'));
+        $response = $this->json('GET', '/api/patients', [
+            'term' => $patient->name,
+        ]);
 
         $response
             ->assertJson(fn (AssertableJson $json) => $json
                 ->count('data', 1)
-                ->where("data.0.$column", $term)
+                ->where("data.0.name", $patient->name)
+                ->etc()
+            );
+    }
+
+    /** @test */
+    public function it_filters_patients_by_cpf()
+    {
+        Patient::factory()->create(['cpf' => '35795836460']);
+        Patient::factory(9)->create();
+
+        $response = $this->json('GET', '/api/patients', [
+            'term' => '357.958.364-60'
+        ]);
+
+        $response
+            ->assertJson(fn (AssertableJson $json) => $json
+                ->count('data', 1)
+                ->where("data.0.cpf", '357.958.364-60')
                 ->etc()
             );
     }
@@ -80,7 +96,12 @@ class PatientControllerTest extends TestCase
     /** @test */
     public function it_shows_a_patient_by_id()
     {
-        $patient = Patient::factory()->hasAddress()->create();
+        $patient = Patient::factory()->hasAddress([
+            'cep' => '25099070'
+        ])->create([
+            'cpf' => '66687846230',
+            'cns' => '220408484180003',
+        ]);
 
         $response = $this->getJson("/api/patients/{$patient->id}");
 
@@ -95,11 +116,11 @@ class PatientControllerTest extends TestCase
                             'name' => $patient->name,
                             'mothers_name' => $patient->mothers_name,
                             'birthdate' => $patient->birthdate->format('Y-m-d'),
-                            'cpf' => $patient->cpf,
-                            'cns' => $patient->cns,
+                            'cpf' => '666.878.462-30',
+                            'cns' => '220 4084 8418 0003',
                             'created_at' => $patient->created_at->toISOString(),
                             'address' => [
-                                'cep' => $patient->address->cep,
+                                'cep' => '25099-070',
                                 'street' => $patient->address->street,
                                 'number' => $patient->address->number,
                                 'complement' => $patient->address->complement,
@@ -119,7 +140,7 @@ class PatientControllerTest extends TestCase
         Storage::fake();
         $patient = Patient::factory()->make();
         $file = UploadedFile::fake()->image($patient->picture);
-        $address = Address::factory()->make();
+        $address = Address::factory()->make(['cep' => '17540580']);
 
         $response = $this->postJson('/api/patients', [
             'picture' => $file,
@@ -151,11 +172,16 @@ class PatientControllerTest extends TestCase
     {
         Storage::fake();
         $oldPatient = Patient::factory()->hasAddress()->create();
-        $patient = Patient::factory()->make();
+        $patient = Patient::factory()->make([
+            'cpf' => '43970832314',
+            'cns' => '253497229460018',
+        ]);
         $file = UploadedFile::fake()->image('new-image.jpg');
-        $address = Address::factory()->make();
+        $address = Address::factory()->make([
+            'cep' => '12074676'
+        ]);
 
-        $response = $this->putJson("/api/patients/{$oldPatient->id}", [
+        $response = $this->patchJson("/api/patients/{$oldPatient->id}", [
             'picture' => $file,
             'name' => $patient->name,
             'mothers_name' => $patient->mothers_name,
@@ -184,11 +210,11 @@ class PatientControllerTest extends TestCase
                             'name' => $patient->name,
                             'mothers_name' => $patient->mothers_name,
                             'birthdate' => $patient->birthdate->format('Y-m-d'),
-                            'cpf' => $patient->cpf,
-                            'cns' => $patient->cns,
+                            'cpf' => '439.708.323-14',
+                            'cns' => '253 4972 2946 0018',
                             'created_at' => $oldPatient->created_at->toISOString(),
                             'address' => [
-                                'cep' => $address->cep,
+                                'cep' => '12074-676',
                                 'street' => $address->street,
                                 'number' => $address->number,
                                 'complement' => $address->complement,
@@ -214,12 +240,5 @@ class PatientControllerTest extends TestCase
         $this
             ->assertDatabaseEmpty('patients')
             ->assertDatabaseEmpty('addresses');
-    }
-
-    public function provideFilter(): Generator
-    {
-        yield 'name' => ['name', fake()->unique()->name];
-
-        yield 'cpf' => ['cpf', '99999999999'];
     }
 }

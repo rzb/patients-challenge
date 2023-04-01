@@ -15,7 +15,7 @@ class AddressResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'cep' => $this->cep,
+            'cep' => $this->cep(),
             'street' => $this->street,
             'number' => $this->number,
             'complement' => $this->complement,
@@ -23,5 +23,12 @@ class AddressResource extends JsonResource
             'city' => $this->city,
             'uf' => $this->uf,
         ];
+    }
+
+    protected function cep(): string
+    {
+        return
+            substr($this->cep, 0, 5) . '-' .
+            substr($this->cep, 5, 3);
     }
 }

@@ -26,27 +26,27 @@ class CnsTest extends TestCase
 
     public function provideValidCns(): Generator
     {
-        yield 'Valid number starting with "1" passes' => [true, '193839901480018'];
+        yield 'valid number starting with "1"' => [true, '193839901480018'];
 
-        yield 'Valid number starting with "2" passes' => [true, '209720193910004'];
+        yield 'valid number starting with "2"' => [true, '209720193910004'];
 
-        yield 'Valid number starting with "7" passes' => [true, '767629468350002'];
+        yield 'valid number starting with "7"' => [true, '767629468350002'];
 
-        yield 'Valid number starting with "8" passes' => [true, '849319684070005'];
+        yield 'valid number starting with "8"' => [true, '849319684070005'];
 
-        yield 'Valid number starting with "9" passes' => [true, '941262642390007'];
+        yield 'valid number starting with "9"' => [true, '941262642390007'];
     }
 
     public function provideInvalidCns(): Generator
     {
-        yield 'Invalid number starting with "1" fails' => [false, '183839901480018'];
+        yield 'invalid number starting with "1"' => [false, '183839901480018'];
 
-        yield 'Invalid number starting with "2" fails' => [false, '219720193910004'];
+        yield 'invalid number starting with "2"' => [false, '219720193910004'];
 
-        yield 'Invalid number starting with "7" fails' => [false, '777629468350002'];
+        yield 'invalid number starting with "7"' => [false, '777629468350002'];
 
-        yield 'Invalid number starting with "8" fails' => [false, '839319684070005'];
+        yield 'invalid number starting with "8"' => [false, '839319684070005'];
 
-        yield 'Invalid number starting with "9" fails' => [false, '931262642390007'];
+        yield 'invalid number starting with "9"' => [false, '931262642390007'];
     }
 }

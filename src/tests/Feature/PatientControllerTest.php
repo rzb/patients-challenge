@@ -218,8 +218,8 @@ class PatientControllerTest extends TestCase
 
     public function provideFilter(): Generator
     {
-        yield 'Search by name' => ['name', fake()->unique()->name];
+        yield 'name' => ['name', fake()->unique()->name];
 
-        yield 'Search by CPF' => ['cpf', '99999999999'];
+        yield 'cpf' => ['cpf', '99999999999'];
     }
 }

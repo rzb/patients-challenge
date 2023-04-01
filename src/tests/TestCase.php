@@ -11,8 +11,8 @@ abstract class TestCase extends BaseTestCase
 
     public function providePagination(): Generator
     {
-        yield 'Specified limit is used' => [5, 5];
+        yield 'custom number of results per page' => [5, 5];
 
-        yield 'Default limit is used when not specified' => [15, null];
+        yield 'default number of results per page' => [15, null];
     }
 }

@@ -203,6 +203,19 @@ class PatientControllerTest extends TestCase
         Storage::disk()->assertExists('pictures/' . $file->hashName());
     }
 
+    /** @test */
+    public function it_deletes_a_patient()
+    {
+        $patient = Patient::factory()->hasAddress()->create();
+
+        $response = $this->deleteJson("api/patients/{$patient->id}");
+
+        $response->assertNoContent();
+        $this
+            ->assertDatabaseEmpty('patients')
+            ->assertDatabaseEmpty('addresses');
+    }
+
     public function provideFilter(): Generator
     {
         yield 'Search by name' => ['name', fake()->unique()->name];

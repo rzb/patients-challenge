@@ -8,6 +8,7 @@ use App\Http\Resources\PatientResource;
 use App\Models\Patient;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 
 class PatientController extends Controller
 {
@@ -54,11 +55,10 @@ class PatientController extends Controller
         return PatientResource::make($patient->load('address'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Patient $patient)
+    public function destroy(Patient $patient): Response
     {
-        //
+        $patient->delete();
+
+        return response()->noContent();
     }
 }

@@ -39,12 +39,19 @@ class PatientController extends Controller
         return PatientResource::make($patient->load('address'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdatePatientRequest $request, Patient $patient)
+    public function update(UpdatePatientRequest $request, Patient $patient): PatientResource
     {
-        //
+        $data = $request->except('picture', 'address');
+
+        if ($request->hasFile('picture')) {
+            $data['picture'] = $request->file('picture')->store('pictures');
+        }
+
+        $patient->update($data);
+
+        $patient->address()->update($request->input('address'));
+
+        return PatientResource::make($patient->load('address'));
     }
 
     /**

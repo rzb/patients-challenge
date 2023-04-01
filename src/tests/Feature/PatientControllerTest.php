@@ -139,7 +139,67 @@ class PatientControllerTest extends TestCase
             ],
         ]);
 
-        $response->assertCreated();
+        $response
+            ->assertCreated()
+            ->assertJson(fn (AssertableJson $json) => $json->has('data.id'));
+        $this->assertDatabaseCount('patients', 1);
+        Storage::disk()->assertExists('pictures/' . $file->hashName());
+    }
+
+    /** @test */
+    public function it_updates_a_patient()
+    {
+        Storage::fake();
+        $oldPatient = Patient::factory()->hasAddress()->create();
+        $patient = Patient::factory()->make();
+        $file = UploadedFile::fake()->image('new-image.jpg');
+        $address = Address::factory()->make();
+
+        $response = $this->putJson("/api/patients/{$oldPatient->id}", [
+            'picture' => $file,
+            'name' => $patient->name,
+            'mothers_name' => $patient->mothers_name,
+            'birthdate' => $patient->birthdate->format('Y-m-d'),
+            'cpf' => $patient->cpf,
+            'cns' => $patient->cns,
+            'address' => [
+                'cep' => $address->cep,
+                'street' => $address->street,
+                'number' => $address->number,
+                'complement' => $address->complement,
+                'neighborhood' => $address->neighborhood,
+                'city' => $address->city,
+                'uf' => $address->uf,
+            ],
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertJson(
+                fn (AssertableJson $json) => $json
+                    ->has('data', fn (AssertableJson $json) => $json
+                        ->whereAll([
+                            'id' => $oldPatient->id,
+                            'picture' => 'pictures/' . $file->hashName(),
+                            'name' => $patient->name,
+                            'mothers_name' => $patient->mothers_name,
+                            'birthdate' => $patient->birthdate->format('Y-m-d'),
+                            'cpf' => $patient->cpf,
+                            'cns' => $patient->cns,
+                            'created_at' => $oldPatient->created_at->toISOString(),
+                            'address' => [
+                                'cep' => $address->cep,
+                                'street' => $address->street,
+                                'number' => $address->number,
+                                'complement' => $address->complement,
+                                'neighborhood' => $address->neighborhood,
+                                'city' => $address->city,
+                                'uf' => $address->uf,
+                            ],
+                        ])
+                        ->etc(),
+                    )
+            );
         Storage::disk()->assertExists('pictures/' . $file->hashName());
     }
 

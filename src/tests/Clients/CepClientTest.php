@@ -5,7 +5,9 @@ namespace Tests\Clients;
 use App\Clients\Cep\CepClient;
 use App\Clients\Cep\CepResponse;
 use Exception;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class CepClientTest extends TestCase
@@ -70,5 +72,27 @@ class CepClientTest extends TestCase
         $this->assertEquals('Sé', $address->neighborhood);
         $this->assertEquals('São Paulo', $address->city);
         $this->assertEquals('SP', $address->uf);
+    }
+
+    /** @test */
+    public function it_caches_addresses()
+    {
+        $cep = '01001-000';
+        Http::fake(fn() => [
+            'cep' => $cep,
+            'logradouro' => 'Praça da Sé',
+            'complemento' => 'lado ímpar',
+            'bairro' => 'Sé',
+            'localidade' => 'São Paulo',
+            'uf' => 'SP',
+            'ibge' => '3550308',
+            'gia' => '1004',
+            'ddd' => '11',
+            'siafi' => '7107'
+        ]);
+
+        app(CepClient::class)->find($cep);
+
+        $this->assertTrue(Cache::has('addresses.' . Str::removeNonDigits($cep)));
     }
 }

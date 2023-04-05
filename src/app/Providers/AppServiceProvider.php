@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Clients\Cep\CepClient;
+use App\Clients\Cep\CepClientCache;
 use App\Clients\Cep\ViaCep;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->app->bind(CepClient::class, ViaCep::class);
+        $this->app->bind(CepClient::class, fn () =>
+            new CepClientCache(new ViaCep())
+        );
     }
 }

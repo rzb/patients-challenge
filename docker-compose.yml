@@ -28,10 +28,10 @@ services:
     ports:
       - ${DB_PORT:-5432}:5432
     environment:
-      POSTGRES_DB: ${DB_DATABASE}
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_ROOT_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE:-postgres}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_ROOT_PASSWORD: ${DB_PASSWORD-postgres}
       SERVICE_TAGS: dev
       SERVICE_NAME: postgres
     networks:

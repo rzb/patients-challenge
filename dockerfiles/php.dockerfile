@@ -22,21 +22,19 @@ RUN sed -i "s/group = www-data/group = laravel/g" /usr/local/etc/php-fpm.d/www.c
 RUN echo "php_admin_flag[log_errors] = on" >> /usr/local/etc/php-fpm.d/www.conf
 
 RUN set -ex \
-    && apk --no-cache add \
-    linux-headers \
-    postgresql-dev \
+    && apk add --no-cache \
     libpng-dev \
     libjpeg-turbo-dev \
-    $PHPIZE_DEPS \
-    && pecl install xdebug
+    libzip-dev \
+    postgresql-dev \
+    && docker-php-ext-configure gd --enable-gd --with-jpeg \
+    && docker-php-ext-install gd pdo pdo_pgsql zip
 
-RUN docker-php-ext-configure gd --enable-gd --with-jpeg
-
-RUN docker-php-ext-install pdo pdo_pgsql gd
-
-RUN docker-php-ext-enable xdebug
-
-RUN echo "xdebug.mode=coverage" >> /usr/local/etc/php/php.ini
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS linux-headers \
+    && pecl install xdebug \
+    && docker-php-ext-enable xdebug \
+    && apk del .build-deps \
+    && echo "xdebug.mode=coverage" >> /usr/local/etc/php/php.ini
 
 RUN mkdir -p /usr/src/php/ext/redis \
     && curl -L https://github.com/phpredis/phpredis/archive/5.3.4.tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1 \

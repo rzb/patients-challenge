@@ -10,7 +10,10 @@ use Tests\TestCase;
 
 class CepClientTest extends TestCase
 {
-    /** @test */
+    /**
+     * @test
+     * @group api
+     */
     public function it_finds_an_address_by_cep(): void
     {
         $cep = '01001000';

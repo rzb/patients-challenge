@@ -19,12 +19,29 @@ class CepClientTest extends TestCase
         $cep = '01001000';
 
         try {
-            app(CepClient::class)->find($cep);
+            $response = app(CepClient::class)->find($cep);
         } catch (Exception $e) {
             $this->fail('Failed to hit the API. ' . $e->getMessage());
         }
 
-        $this->assertTrue(true);
+        $this->assertInstanceOf(CepResponse::class, $response);
+    }
+
+    /**
+     * @test
+     * @group api
+     */
+    public function it_returns_false_if_cep_is_invalid(): void
+    {
+        $cep = 'invalid-9999999';
+
+        try {
+            $response = app(CepClient::class)->find($cep);
+        } catch (Exception $e) {
+            $this->fail('Failed to hit the API. ' . $e->getMessage());
+        }
+
+        $this->assertFalse($response);
     }
 
     /** @test */

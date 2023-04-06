@@ -28,7 +28,8 @@ RUN set -ex \
     libzip-dev \
     postgresql-dev \
     && docker-php-ext-configure gd --enable-gd --with-jpeg \
-    && docker-php-ext-install gd pdo pdo_pgsql zip
+    && docker-php-ext-configure pcntl --enable-pcntl \
+    && docker-php-ext-install gd pdo pdo_pgsql zip pcntl
 
 RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS linux-headers \
     && pecl install xdebug \

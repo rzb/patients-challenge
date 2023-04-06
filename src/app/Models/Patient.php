@@ -5,10 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use JeroenG\Explorer\Application\Explored;
+use Laravel\Scout\Searchable;
 
-class Patient extends Model
+class Patient extends Model implements Explored
 {
     use HasFactory;
+    use Searchable;
 
     protected $fillable = [
         'picture',
@@ -26,5 +29,21 @@ class Patient extends Model
     public function address(): HasOne
     {
         return $this->hasOne(Address::class);
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => (int) $this->id,
+            'name' => $this->name,
+            'cpf' => $this->cpf,
+        ];
+    }
+
+    public function mappableAs(): array
+    {
+        return [
+            'id' => 'keyword',
+        ];
     }
 }

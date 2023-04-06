@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class PatientResource extends JsonResource
 {
@@ -16,7 +17,7 @@ class PatientResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'picture' => $this->picture,
+            'picture' => Storage::url($this->picture),
             'name' => $this->name,
             'mothers_name' => $this->mothers_name,
             'birthdate' => $this->birthdate->format('Y-m-d'),

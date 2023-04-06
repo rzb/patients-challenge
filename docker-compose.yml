@@ -3,6 +3,10 @@ version: '3'
 networks:
   laravel:
 
+volumes:
+  elasticsearch:
+    driver: local
+
 services:
   app:
     build:
@@ -99,5 +103,36 @@ services:
     depends_on:
       - postgres
     entrypoint: [ 'php', '/var/www/html/artisan' ]
+    networks:
+      - laravel
+
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
+    container_name: es01
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - laravel
+
+  kib01:
+    image: docker.elastic.co/kibana/kibana:7.9.3
+    container_name: kib01
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://es01:9200
+      ELASTICSEARCH_HOSTS: http://es01:9200
     networks:
       - laravel

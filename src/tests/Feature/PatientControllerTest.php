@@ -112,7 +112,7 @@ class PatientControllerTest extends TestCase
                     ->has('data', fn (AssertableJson $json) => $json
                         ->whereAll([
                             'id' => $patient->id,
-                            'picture' => $patient->picture,
+                            'picture' => Storage::url($patient->picture),
                             'name' => $patient->name,
                             'mothers_name' => $patient->mothers_name,
                             'birthdate' => $patient->birthdate->format('Y-m-d'),
@@ -206,7 +206,7 @@ class PatientControllerTest extends TestCase
                     ->has('data', fn (AssertableJson $json) => $json
                         ->whereAll([
                             'id' => $oldPatient->id,
-                            'picture' => 'pictures/' . $file->hashName(),
+                            'picture' => Storage::url("pictures/{$file->hashName()}"),
                             'name' => $patient->name,
                             'mothers_name' => $patient->mothers_name,
                             'birthdate' => $patient->birthdate->format('Y-m-d'),

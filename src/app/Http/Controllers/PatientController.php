@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\IndexPatientsRequest;
 use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
 use App\Http\Resources\PatientResource;
@@ -9,16 +10,14 @@ use App\Models\Patient;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
-use Illuminate\Support\Str;
 
 class PatientController extends Controller
 {
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(IndexPatientsRequest $request): AnonymousResourceCollection
     {
         return PatientResource::collection(
-            Patient::when($request->input('term'), fn ($query, $term) => $query
-                ->where('name', $term)
-                ->orWhere('cpf', Str::removeNonDigits($term))
+            Patient::when($request->has('term'), fn () =>
+                Patient::search($request->input('term'))
             )->paginate($request->input('per_page'))
         );
     }

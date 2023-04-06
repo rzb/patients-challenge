@@ -60,8 +60,8 @@ class PatientControllerTest extends TestCase
    /** @test */
     public function it_filters_patients_by_name()
     {
-        $patient = Patient::factory()->create();
-        Patient::factory(9)->create();
+        $patient = Patient::factory()->create(['name' => 'Very Specific Name']);
+        Patient::factory(9)->create(['name' => 'Not our job to test elasticsearch engine']);
 
         $response = $this->json('GET', '/api/patients', [
             'term' => $patient->name,

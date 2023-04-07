@@ -7,6 +7,8 @@ use App\Rules\Cns;
 use App\Rules\Cpf;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\File;
+use Illuminate\Validation\Rules\Unique;
 
 class StorePatientRequest extends FormRequest
 {
@@ -20,9 +22,13 @@ class StorePatientRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        foreach (['address.cep', 'cns', 'cpf'] as $key) {
-            $this->merge([$key => Str::removeNonDigits($this->input($key))]);
-        }
+        $this->merge([
+            'cpf' => Str::removeNonDigits($this->input('cpf')),
+            'cns' => Str::removeNonDigits($this->input('cns')),
+            'address' => array_merge($this->input('address'), [
+                'cep' => Str::removeNonDigits($this->input('address.cep'))
+            ]),
+        ]);
     }
 
     /**
@@ -33,19 +39,19 @@ class StorePatientRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'picture' => 'required|image',
-            'name' => 'required',
-            'mothers_name' => 'required',
+            'picture' => ['required', File::image()->max(2 * 1024)],
+            'name' => 'required|string|min:3|max:255',
+            'mothers_name' => 'required|string|min:3|max:255',
             'birthdate' => 'required|date_format:Y-m-d',
-            'cpf' => ['required', new Cpf()],
-            'cns' => ['required', new Cns()],
+            'cpf' => ['required', new Unique('patients'), new Cpf()],
+            'cns' => ['required', new Unique('patients'), new Cns()],
             'address.cep' => ['required', new Cep()],
-            'address.street' => 'required',
-            'address.number' => 'required',
-            'address.complement' => 'required',
-            'address.neighborhood' => 'required',
-            'address.city' => 'required',
-            'address.uf' => 'required|size:2', // @todo consider enum or lookup table validation
+            'address.street' => 'required|string|max:255',
+            'address.number' => 'required|string|max:255',
+            'address.complement' => 'nullable|string|max:255',
+            'address.neighborhood' => 'required|string|max:255',
+            'address.city' => 'required|string|max:255',
+            'address.uf' => 'required|alpha:ascii|size:2', // @todo consider enum or lookup table validation
         ];
     }
 }

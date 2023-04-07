@@ -55,6 +55,9 @@ class Patient extends Model implements Explored
         ];
     }
 
+    /**
+     * @codeCoverageIgnore  does not run when using the database driver for scout
+     */
     public function mappableAs(): array
     {
         return [

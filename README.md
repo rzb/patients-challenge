@@ -100,6 +100,12 @@ Geralmente eu faria no mínimo um enum pra validá-lo. Ou lookup table se necess
 
 Aproveitei o laravel-excel para não reinventar a roda. Mas uma alternativa sem package seria utilizar o recurso de Job Batching do Laravel, com um Job responsável por contar as rows, "chunkiar" e hidratar outros Jobs para evitar timeouts. O laravel-excel acaba fazendo algo muito parecido da forma que foi configurado.
 
+#### Custom templates
+
+Por flexibilidade, implementei suporte a template personalizado. Basta mapear as colunas no request de importação usando dot notation (ver [ImportPatientRequest](./src/app/Http/Requests/ImportPatientRequest.php)). Colunas omitidas em `map` utilizam o nome padrão.
+
+#### Melhorias
+
 A depender da frequência de uso do recurso de importação, talvez fizesse sentido criar um Model e endpoints para listar imports, facilitando o acompanhamento dos cadastros importados e dos que falharam.
 
 Outra melhoria possível seria salvar em dois bulk inserts, ao invés de linha por linha. Primeiro os pacientes, depois, com o auxílio de um array de row keys e model ids, os endereços.

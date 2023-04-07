@@ -6,6 +6,7 @@ use App\Models\Patient;
 use App\Rules\Cns;
 use App\Rules\Cpf;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Unique;
@@ -32,28 +33,21 @@ class PatientsImport implements
     use Importable;
     use RegistersEventListeners;
 
+    public function __construct(protected null|RowMapper $mapper = null)
+    {}
+
+    public static function usingMap(array $map): static
+    {
+        return new static(new RowMapper($map));
+    }
+
     public function onRow(Row $row)
     {
-        $row = $row->toArray();
+        $row = $row->toCollection();
 
-        $patient = Patient::create([
-            'picture' => $row['foto'],
-            'name' => $row['nome'],
-            'mothers_name' => $row['nome_da_mae'],
-            'birthdate' => $row['data_de_nascimento'],
-            'cpf' => $row['cpf'],
-            'cns' => $row['cns'],
-        ]);
+        $patient = Patient::create($row->except('address')->toArray());
 
-        $patient->address()->create([
-            'cep' => $row['cep'],
-            'street' => $row['logradouro'],
-            'number' => $row['numero'],
-            'complement' => $row['complemento'],
-            'neighborhood' => $row['bairro'],
-            'city' => $row['localidade'],
-            'uf' => $row['uf'],
-        ]);
+        $patient->address()->create($row->get('address'));
     }
 
     public function chunkSize(): int
@@ -63,36 +57,38 @@ class PatientsImport implements
 
     public function prepareForValidation(array $row): array
     {
-        return array_merge($row, [
-            'cep' => Str::removeNonDigits($row['cep']),
-            'cns' => Str::removeNonDigits($row['cns']),
-            'cpf' => Str::removeNonDigits($row['cpf']),
-            'numero' => (string) $row['numero'],
-        ]);
+        $row = $this->mapRow($row);
+
+        return $row->replace([
+            'cpf' => Str::removeNonDigits($row->get('cpf')),
+            'cns' => Str::removeNonDigits($row->get('cns')),
+            'address.cep' => Str::removeNonDigits($row->get('address.cep')),
+            'address.number' => (string) $row->get('address.number')
+        ])->undot()->toArray();
     }
 
     public function rules(): array
     {
         return [
-            'foto' => 'required|string|min:3|max:255',
-            'nome' => 'required|string|min:3|max:255',
-            'nome_da_mae' => 'required|string|min:3|max:255',
-            'data_de_nascimento' => 'required|date_format:Y-m-d',
+            'picture' => 'required|string|min:3|max:255',
+            'name' => 'required|string|min:3|max:255',
+            'mothers_name' => 'required|string|min:3|max:255',
+            'birthdate' => 'required|date_format:Y-m-d',
             'cpf' => ['required', new Unique('patients'), new Cpf()],
             'cns' => ['required', new Unique('patients'), new Cns()],
-            'cep' => 'required|string|size:8',
-            'logradouro' => 'required|string|max:255',
-            'numero' => 'required|string|max:255',
-            'complemento' => 'nullable|string|max:255',
-            'bairro' => 'required|string|max:255',
-            'localidade' => 'required|string|max:255',
-            'uf' => 'required|alpha:ascii|size:2', // @todo consider enum or lookup table validation
+            'address.cep' => 'required|string|size:8',
+            'address.street' => 'required|string|max:255',
+            'address.number' => 'required|string|max:255',
+            'address.complement' => 'nullable|string|max:255',
+            'address.neighborhood' => 'required|string|max:255',
+            'address.city' => 'required|string|max:255',
+            'address.uf' => 'required|alpha:ascii|size:2', // @todo consider enum or lookup table validation
         ];
     }
 
     public function onFailure(Failure ...$failures)
     {
-        $failures = collect($failures);
+        $failures = new Collection($failures);
 
         Log::error(
             "Patients Import: a validation error was found and the row was skipped.",
@@ -104,5 +100,10 @@ class PatientsImport implements
                 )->flatten()->toArray(),
             ]
         );
+    }
+
+    protected function mapRow(array $row): Collection
+    {
+        return $this->mapper?->handle($row) ?: new Collection($row);
     }
 }

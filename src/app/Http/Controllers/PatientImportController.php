@@ -10,7 +10,7 @@ class PatientImportController extends Controller
 {
     public function store(ImportPatientRequest $request): Response
     {
-        (new PatientsImport())->queue($request->file('import'));
+        PatientsImport::usingMap($request->input('map', []))->queue($request->file('import'));
 
         return response()->noContent();
     }

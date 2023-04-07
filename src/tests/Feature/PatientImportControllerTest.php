@@ -16,15 +16,35 @@ class PatientImportControllerTest extends TestCase
     /** @test */
     public function it_imports_patients_from_uploaded_csv(): void
     {
-        $import = new UploadedFile(
-            base_path('tests/patients.csv'),
-            'patients.csv',
-            'test/csv',
-            null,
-            true
-        );
+        $response = $this->postJson('/api/imports', [
+            'import' => $this->importFile('patients'),
+        ]);
 
-        $response = $this->postJson('/api/imports', compact('import'));
+        $response->assertNoContent();
+        $this->assertDatabaseCount('patients', 8);
+    }
+
+    /** @test */
+    public function it_imports_patients_from_uploaded_csv_using_custom_headings(): void
+    {
+        $response = $this->postJson('/api/imports', [
+            'import' => $this->importFile('patients-with-custom-headings'),
+            'map' => [
+                'picture' => 'foto',
+                'name' => 'nome',
+                'mothers_name' => 'nome_da_mae',
+                'birthdate' => 'data_de_nascimento',
+                'cpf' => 'cpf',
+                'cns' => 'cns',
+                'address.cep' => 'cep',
+                'address.street' => 'logradouro',
+                'address.number' => 'numero',
+                'address.complement' => 'complemento',
+                'address.neighborhood' => 'bairro',
+                'address.city' => 'localidade',
+                'address.uf' => 'uf',
+            ],
+        ]);
 
         $response->assertNoContent();
         $this->assertDatabaseCount('patients', 8);
@@ -39,16 +59,11 @@ class PatientImportControllerTest extends TestCase
             ['cpf' => '25292040800'],
             ['cpf' => '28597408804'],
         )->create();
-        $import = new UploadedFile(
-            base_path('tests/patients.csv'),
-            'patients.csv',
-            'test/csv',
-            null,
-            true
-        );
         Log::shouldReceive('error')->times(3);
 
-        $response = $this->postJson('/api/imports', compact('import'));
+        $response = $this->postJson('/api/imports', [
+            'import' => $this->importFile('patients'),
+        ]);
 
         $response->assertNoContent();
     }
@@ -62,5 +77,16 @@ class PatientImportControllerTest extends TestCase
         $this->postJson('/api/imports', compact('import'));
 
         Excel::assertQueued($import->getFilename());
+    }
+
+    protected function importFile(string $name): UploadedFile
+    {
+        return new UploadedFile(
+            base_path("tests/{$name}.csv"),
+            "{$name}.csv",
+            'text/csv',
+            null,
+            true
+        );
     }
 }

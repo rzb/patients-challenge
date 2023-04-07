@@ -234,6 +234,48 @@ class PatientControllerTest extends TestCase
     }
 
     /** @test */
+    public function it_updates_the_patients_address()
+    {
+        Storage::fake();
+        $oldAddress = Address::factory()->forPatient()->create([
+            'cep' => '12345678',
+        ]);
+        $address = Address::factory()->make([
+            'cep' => '12074676'
+        ]);
+
+        $response = $this->patchJson("/api/patients/{$oldAddress->patient->id}", [
+            'address' => [
+                'cep' => $address->cep,
+                'street' => $address->street,
+                'number' => $address->number,
+                'complement' => $address->complement,
+                'neighborhood' => $address->neighborhood,
+                'city' => $address->city,
+                'uf' => $address->uf,
+            ],
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertJson(
+                fn (AssertableJson $json) => $json
+                    ->has('data', fn (AssertableJson $json) => $json
+                        ->where('address', [
+                            'cep' => '12074-676',
+                            'street' => $address->street,
+                            'number' => $address->number,
+                            'complement' => $address->complement,
+                            'neighborhood' => $address->neighborhood,
+                            'city' => $address->city,
+                            'uf' => $address->uf,
+                        ])
+                        ->etc(),
+                    )
+            );
+    }
+
+    /** @test */
     public function it_updates_a_patients_picture_deleting_the_old_one()
     {
         Storage::fake();

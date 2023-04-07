@@ -18,7 +18,7 @@ class PatientController extends Controller
         return PatientResource::collection(
             Patient::when($request->has('term'), fn () =>
                 Patient::search($request->input('term'))
-            )->paginate($request->input('per_page'))
+            )->paginate($request->integer('per_page'))
         );
     }
 

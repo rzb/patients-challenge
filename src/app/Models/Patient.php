@@ -9,8 +9,6 @@ use Illuminate\Support\Facades\Storage;
 use JeroenG\Explorer\Application\Explored;
 use Laravel\Scout\Searchable;
 
-use function Illuminate\Events\queueable;
-
 class Patient extends Model implements Explored
 {
     use HasFactory;

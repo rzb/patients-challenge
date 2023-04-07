@@ -1,4 +1,4 @@
-picture,name,mothers_name,birthdate,cpf,cns,address.cep,address.street,address.number,address.complement,address.neighborhood,address.city,address.uf
+foto,nome,nome_da_mae,data_de_nascimento,cpf,cns,cep,logradouro,numero,complemento,bairro,localidade,uf
 "pictures/c983325a12627b3d3e2d07b9ee00d469.jpg","João da Silva","Maria da Silva","1980-01-01","272.400.926-66","138034859940001","12345-678","Rua Principal","123","Apto. 456","Centro","Cidade Qualquer","SP"
 "pictures/64b6e2003520312c98169ab19a14101f.jpg","Maria de Souza","Ana de Souza","1990-02-15","643.426.156-06","992931239650001","98765-432","Avenida Central","456","Bloco C","Jardim","Cidade Qualquer","SP"
 "pictures/305ec3bc3d126a8f9b7477e5ef2e1c7b.jpg","Fernanda Alves","Carla Alves","1975-12-05","800.857.683-91","279929815700005","29876-543","Rua do Comércio","789","","Bairro Novo","Cidade Qualquer","SP"

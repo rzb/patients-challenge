@@ -24,6 +24,19 @@ class ImportPatientRequest extends FormRequest
     {
         return [
             'import' => 'required|file|mimetypes:text/csv',
+            // Optional headings map for custom import templates. Omit to use default.
+            'map.picture' => 'sometimes|required|string',
+            'map.name' => 'sometimes|required|string',
+            'map.mothers_name' => 'sometimes|required|string',
+            'map.birthdate' => 'sometimes|required|string',
+            'map.cpf' => 'sometimes|required|string',
+            'map.cns' => 'sometimes|required|string',
+            'map.address.cep' => 'sometimes|required|string',
+            'map.address.street' => 'sometimes|required|string',
+            'map.address.number' => 'sometimes|required|string',
+            'map.address.complement' => 'sometimes|required|string',
+            'map.address.neighborhood' => 'sometimes|required|string',
+            'map.address.city' => 'sometimes|required|string',
         ];
     }
 }

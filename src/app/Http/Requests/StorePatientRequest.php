@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Patient;
 use App\Rules\Cns;
 use App\Rules\Cpf;
 use Illuminate\Foundation\Http\FormRequest;
@@ -55,5 +56,18 @@ class StorePatientRequest extends FormRequest
             'address.city' => 'required|string|max:255',
             'address.uf' => 'required|alpha:ascii|size:2', // @todo consider enum or lookup table validation
         ];
+    }
+
+    public function fulfill(): Patient
+    {
+        $patient = Patient::make($this->except('picture', 'address'));
+
+        $patient->picture = $this->file('picture')->store('pictures');
+
+        $patient->save();
+
+        $patient->address()->create($this->input('address'));
+
+        return $patient;
     }
 }

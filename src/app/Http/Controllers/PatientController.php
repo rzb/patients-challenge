@@ -7,7 +7,6 @@ use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
 use App\Http\Resources\PatientResource;
 use App\Models\Patient;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
@@ -24,13 +23,7 @@ class PatientController extends Controller
 
     public function store(StorePatientRequest $request): PatientResource
     {
-        $patient = Patient::make($request->except('picture', 'address'));
-
-        $patient->picture = $request->file('picture')->store('pictures');
-
-        $patient->save();
-
-        $patient->address()->create($request->input('address'));
+        $patient = $request->fulfill();
 
         return PatientResource::make($patient->load('address'));
     }
@@ -42,15 +35,7 @@ class PatientController extends Controller
 
     public function update(UpdatePatientRequest $request, Patient $patient): PatientResource
     {
-        $data = $request->except('picture', 'address');
-
-        if ($request->hasFile('picture')) {
-            $data['picture'] = $request->file('picture')->store('pictures');
-        }
-
-        $patient->update($data);
-
-        $patient->address()->update($request->input('address'));
+        $patient = $request->fulfill();
 
         return PatientResource::make($patient->load('address'));
     }

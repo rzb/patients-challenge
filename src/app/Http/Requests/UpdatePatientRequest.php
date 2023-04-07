@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Patient;
 use App\Rules\Cns;
 use App\Rules\Cpf;
 use Illuminate\Foundation\Http\FormRequest;
@@ -67,5 +68,20 @@ class UpdatePatientRequest extends FormRequest
             'address.city' => 'sometimes|required|string|max:255',
             'address.uf' => 'sometimes|required|alpha:ascii|size:2', // @todo consider enum or lookup table validation
         ];
+    }
+
+    public function fulfill(): Patient
+    {
+        $data = $this->except('picture', 'address');
+
+        if ($this->hasFile('picture')) {
+            $data['picture'] = $this->file('picture')->store('pictures');
+        }
+
+        $this->route()->patient->update($data);
+
+        $this->route()->patient->address()->update($this->input('address'));
+
+        return $this->route()->patient;
     }
 }

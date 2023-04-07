@@ -80,7 +80,7 @@ class UpdatePatientRequest extends FormRequest
 
         $this->route()->patient->update($data);
 
-        $this->route()->patient->address()->update($this->input('address'));
+        $this->route()->patient->address()->update($this->input('address', []));
 
         return $this->route()->patient;
     }

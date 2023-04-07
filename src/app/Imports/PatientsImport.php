@@ -7,17 +7,34 @@ use App\Rules\Cep;
 use App\Rules\Cns;
 use App\Rules\Cpf;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Unique;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\OnEachRow;
+use Maatwebsite\Excel\Concerns\RegistersEventListeners;
+use Maatwebsite\Excel\Concerns\SkipsFailures;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Row;
+use Maatwebsite\Excel\Validators\Failure;
 
-class PatientsImport implements OnEachRow, WithHeadingRow, WithChunkReading, ShouldQueue, WithValidation
+class PatientsImport implements
+    OnEachRow,
+    WithHeadingRow,
+    WithChunkReading,
+    ShouldQueue,
+    SkipsOnFailure,
+    WithValidation,
+    WithEvents
 {
     use Importable;
+    use SkipsFailures;
+    use RegistersEventListeners;
 
     public function onRow(Row $row)
     {
@@ -54,25 +71,36 @@ class PatientsImport implements OnEachRow, WithHeadingRow, WithChunkReading, Sho
             'cep' => Str::removeNonDigits($row['cep']),
             'cns' => Str::removeNonDigits($row['cns']),
             'cpf' => Str::removeNonDigits($row['cpf']),
+            'numero' => (string) $row['numero'],
         ]);
     }
 
     public function rules(): array
     {
         return [
-            'foto' => 'required',
-            'nome' => 'required',
-            'nome_da_mae' => 'required',
+            'foto' => 'required|string|min:3|max:255',
+            'nome' => 'required|string|min:3|max:255',
+            'nome_da_mae' => 'required|string|min:3|max:255',
             'data_de_nascimento' => 'required|date_format:Y-m-d',
-            'cpf' => ['required', new Cpf()],
-            'cns' => ['required', new Cns()],
+            'cpf' => ['required', new Unique('patients'), new Cpf()],
+            'cns' => ['required', new Unique('patients'), new Cns()],
             'cep' => ['required', new Cep()],
-            'logradouro' => 'required',
-            'numero' => 'required',
-            'complemento' => 'nullable',
-            'bairro' => 'required',
-            'localidade' => 'required',
-            'uf' => 'required|size:2', // @todo consider enum or lookup table validation
+            'logradouro' => 'required|string|max:255',
+            'numero' => 'required|string|max:255',
+            'complemento' => 'nullable|string|max:255',
+            'bairro' => 'required|string|max:255',
+            'localidade' => 'required|string|max:255',
+            'uf' => 'required|alpha:ascii|size:2', // @todo consider enum or lookup table validation
         ];
+    }
+
+    public static function afterImport(AfterImport $event)
+    {
+        $event->getConcernable()->failures()->each(fn (Failure $failure) =>
+            Log::error(
+                'Patients Import: a validation error was found and the row was skipped.',
+                $failure->toArray()
+            )
+        );
     }
 }

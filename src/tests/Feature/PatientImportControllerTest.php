@@ -2,15 +2,15 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 use Tests\TestCase;
 
-use function Pest\testDirectory;
-
 class PatientImportControllerTest extends TestCase
 {
+    use RefreshDatabase;
+
     /** @test */
     public function it_imports_patients_from_uploaded_csv(): void
     {
@@ -22,11 +22,10 @@ class PatientImportControllerTest extends TestCase
             true
         );
 
-        $v = Validator::make([], []);
-
         $response = $this->postJson('/api/imports', compact('import'));
 
         $response->assertNoContent();
+        $this->assertDatabaseCount('patients', 8);
     }
 
     /** @test */

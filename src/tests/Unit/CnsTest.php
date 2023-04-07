@@ -39,6 +39,8 @@ class CnsTest extends TestCase
 
     public function provideInvalidCns(): Generator
     {
+        yield 'invalid number with wrong length' => [false, '1838399014800180'];
+
         yield 'invalid number starting with "1"' => [false, '183839901480018'];
 
         yield 'invalid number starting with "2"' => [false, '219720193910004'];
@@ -48,5 +50,7 @@ class CnsTest extends TestCase
         yield 'invalid number starting with "8"' => [false, '839319684070005'];
 
         yield 'invalid number starting with "9"' => [false, '931262642390007'];
+
+        yield 'invalid number starting with invalid digit' => [false, '483839901480018'];
     }
 }

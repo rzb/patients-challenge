@@ -10,7 +10,7 @@ use Tests\TestCase;
 class FindAddressByCepTest extends TestCase
 {
     /** @test */
-    public function it_hits_an_external_api_to_find_an_address_by_its_cep(): void
+    public function it_validates_a_cep_and_returns_the_corresponding_full_address(): void
     {
         $cep = '01001-000';
         Http::fake(fn() => [
@@ -44,7 +44,7 @@ class FindAddressByCepTest extends TestCase
     }
 
     /** @test */
-    public function it_returns_422_if_external_api_thinks_cep_is_invalid(): void
+    public function it_fails_with_422_if_cep_is_invalid(): void
     {
         $cep = 'invalid-99999';
         Http::fake(fn() => false);

@@ -2,11 +2,13 @@
 
 namespace App\Http\Requests;
 
-use App\Rules\Cep;
+use App\Models\Patient;
 use App\Rules\Cns;
 use App\Rules\Cpf;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\File;
+use Illuminate\Validation\Rules\Unique;
 
 class StorePatientRequest extends FormRequest
 {
@@ -20,9 +22,13 @@ class StorePatientRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        foreach (['address.cep', 'cns', 'cpf'] as $key) {
-            $this->merge([$key => Str::removeNonDigits($this->input($key))]);
-        }
+        $this->merge([
+            'cpf' => Str::removeNonDigits($this->input('cpf')),
+            'cns' => Str::removeNonDigits($this->input('cns')),
+            'address' => array_merge($this->input('address'), [
+                'cep' => Str::removeNonDigits($this->input('address.cep'))
+            ]),
+        ]);
     }
 
     /**
@@ -33,19 +39,35 @@ class StorePatientRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'picture' => 'required|image',
-            'name' => 'required',
-            'mothers_name' => 'required',
+            'picture' => ['required', File::image()->max(2 * 1024)],
+            'name' => 'required|string|min:3|max:255',
+            'mothers_name' => 'required|string|min:3|max:255',
             'birthdate' => 'required|date_format:Y-m-d',
-            'cpf' => ['required', new Cpf()],
-            'cns' => ['required', new Cns()],
-            'address.cep' => ['required', new Cep()],
-            'address.street' => 'required',
-            'address.number' => 'required',
-            'address.complement' => 'required',
-            'address.neighborhood' => 'required',
-            'address.city' => 'required',
-            'address.uf' => 'required|size:2', // @todo consider enum or lookup table validation
+            'cpf' => ['required', new Unique('patients'), new Cpf()],
+            'cns' => ['required', new Unique('patients'), new Cns()],
+            // Not validating CEP on remote. It would probably be cached at this
+            // point if the UI hits our api for autocompleting, but worthless
+            // if we accepted invalid CEPs from imports to avoid timeouts.
+            'address.cep' => 'required|string|size:8',
+            'address.street' => 'required|string|max:255',
+            'address.number' => 'required|string|max:255',
+            'address.complement' => 'nullable|string|max:255',
+            'address.neighborhood' => 'required|string|max:255',
+            'address.city' => 'required|string|max:255',
+            'address.uf' => 'required|alpha:ascii|size:2', // @todo consider enum or lookup table validation
         ];
+    }
+
+    public function fulfill(): Patient
+    {
+        $patient = Patient::make($this->except('picture', 'address'));
+
+        $patient->picture = $this->file('picture')->store('pictures');
+
+        $patient->save();
+
+        $patient->address()->create($this->input('address'));
+
+        return $patient;
     }
 }

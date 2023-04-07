@@ -79,7 +79,11 @@ class PatientControllerTest extends TestCase
     public function it_filters_patients_by_cpf()
     {
         Patient::factory()->create(['cpf' => '35795836460']);
-        Patient::factory(9)->create();
+        Patient::factory(3)->sequence(
+            ['cpf' => '28461634560'],
+            ['cpf' => '88066802269'],
+            ['cpf' => '69832182484'],
+        )->create();
 
         $response = $this->json('GET', '/api/patients', [
             'term' => '357.958.364-60'

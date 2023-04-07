@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Rules\Cep;
 use App\Rules\Cns;
 use App\Rules\Cpf;
 use Illuminate\Foundation\Http\FormRequest;
@@ -45,7 +44,10 @@ class StorePatientRequest extends FormRequest
             'birthdate' => 'required|date_format:Y-m-d',
             'cpf' => ['required', new Unique('patients'), new Cpf()],
             'cns' => ['required', new Unique('patients'), new Cns()],
-            'address.cep' => ['required', new Cep()],
+            // Not validating CEP on remote. It would probably be cached at this
+            // point if the UI hits our api for autocompleting, but worthless
+            // if we accepted invalid CEPs from imports to avoid timeouts.
+            'address.cep' => 'required|string|size:8',
             'address.street' => 'required|string|max:255',
             'address.number' => 'required|string|max:255',
             'address.complement' => 'nullable|string|max:255',

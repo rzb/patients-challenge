@@ -3,7 +3,6 @@
 namespace App\Imports;
 
 use App\Models\Patient;
-use App\Rules\Cep;
 use App\Rules\Cns;
 use App\Rules\Cpf;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -84,7 +83,7 @@ class PatientsImport implements
             'data_de_nascimento' => 'required|date_format:Y-m-d',
             'cpf' => ['required', new Unique('patients'), new Cpf()],
             'cns' => ['required', new Unique('patients'), new Cns()],
-            'cep' => ['required', new Cep()],
+            'cep' => 'required|string|size:8',
             'logradouro' => 'required|string|max:255',
             'numero' => 'required|string|max:255',
             'complemento' => 'nullable|string|max:255',

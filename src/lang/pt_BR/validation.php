@@ -14,6 +14,7 @@ return [
         'file' => 'O campo :attribute não pode ter mais que :max kilobytes.',
         'string' => 'O campo :attribute não pode ter mais que :max caracteres.',
     ],
+    'numeric' => 'O campo :attribute precisa ser um número.',
     'required' => 'O campo :attribute é obrigatório.',
     'string' => 'O campo :attribute precisa conter texto.',
     'unique' => 'O campo :attribute já foi utilizado.',

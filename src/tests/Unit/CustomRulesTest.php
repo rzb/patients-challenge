@@ -2,7 +2,6 @@
 
 namespace Tests\Unit;
 
-use App\Rules\Cep;
 use App\Rules\Cns;
 use App\Rules\Cpf;
 use Closure;
@@ -23,7 +22,6 @@ class CustomRulesTest extends TestCase
      * @test
      * @dataProvider provideCpf
      * @dataProvider provideCns
-     * @dataProvider provideCep
      */
     public function it_validates_a_field($rule, $value, $shouldFail, $message): void
     {
@@ -50,15 +48,6 @@ class CustomRulesTest extends TestCase
         yield 'valid number' => [new Cns(), '120413834000008', false, null];
 
         yield 'invalid number' => [new Cns(), '183839901480018', true, 'validation.cns'];
-    }
-
-    private function provideCep(): Generator
-    {
-        yield 'valid number' => [new Cep(), '69440970', false, null];
-
-        yield 'invalid too short' => [new Cep(), '6944097', true, 'validation.cep'];
-
-        yield 'invalid too long' => [new Cep(), '694409702', true, 'validation.cep'];
     }
 
     protected function expectExceptionOnlyIf(bool $condition, ?string $message)

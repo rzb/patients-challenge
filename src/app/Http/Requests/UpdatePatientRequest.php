@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Rules\Cep;
 use App\Rules\Cns;
 use App\Rules\Cpf;
 use Illuminate\Foundation\Http\FormRequest;
@@ -60,7 +59,7 @@ class UpdatePatientRequest extends FormRequest
                 (new Unique('patients'))->ignoreModel($this->route()->patient),
                 new Cns(),
             ],
-            'address.cep' => ['sometimes', 'required', new Cep()],
+            'address.cep' => 'sometimes|required|size:8',
             'address.street' => 'sometimes|required|string|max:255',
             'address.number' => 'sometimes|required|string|max:255',
             'address.complement' => 'nullable|string|max:255',

@@ -18,13 +18,15 @@ class UpdatePatientRequest extends FormRequest
         return true;
     }
 
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
-        $this->merge([
-            'cep' => Str::removeNonDigits($this->cep),
-            'cns' => Str::removeNonDigits($this->cns),
-            'cpf' => Str::removeNonDigits($this->cpf),
-        ]);
+        foreach (['address.cep', 'cns', 'cpf'] as $key) {
+            if (! $this->filled($key)) {
+                return;
+            }
+
+            $this->merge([$key => Str::removeNonDigits($this->input($key))]);
+        }
     }
 
     /**
@@ -35,7 +37,7 @@ class UpdatePatientRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'picture' => 'sometimes|image',
+            'picture' => 'sometimes|required|image',
             'name' => 'sometimes|required',
             'mothers_name' => 'sometimes|required',
             'birthdate' => 'sometimes|required|date_format:Y-m-d',

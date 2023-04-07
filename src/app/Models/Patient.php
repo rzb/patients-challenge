@@ -5,8 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Storage;
 use JeroenG\Explorer\Application\Explored;
 use Laravel\Scout\Searchable;
+
+use function Illuminate\Events\queueable;
 
 class Patient extends Model implements Explored
 {
@@ -25,6 +28,20 @@ class Patient extends Model implements Explored
     protected $casts = [
         'birthdate' => 'date:Y-m-d',
     ];
+
+    // @todo consider moving to separate Event classes if it gets busier
+    protected static function booted(): void
+    {
+        static::updated(function (Patient $patient) {
+            if ($patient->wasChanged('picture')) {
+                Storage::delete($patient->getRawOriginal('picture'));
+            }
+        });
+
+        static::deleted(function (Patient $patient) {
+            Storage::delete($patient->picture);
+        });
+    }
 
     public function address(): HasOne
     {

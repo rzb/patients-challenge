@@ -164,7 +164,7 @@ class PatientControllerTest extends TestCase
             ->assertCreated()
             ->assertJson(fn (AssertableJson $json) => $json->has('data.id'));
         $this->assertDatabaseCount('patients', 1);
-        Storage::disk()->assertExists('pictures/' . $file->hashName());
+        Storage::assertExists('pictures/' . $file->hashName());
     }
 
     /** @test */
@@ -226,12 +226,29 @@ class PatientControllerTest extends TestCase
                         ->etc(),
                     )
             );
-        Storage::disk()->assertExists('pictures/' . $file->hashName());
+        Storage::assertExists('pictures/' . $file->hashName());
+    }
+
+    /** @test */
+    public function it_updates_a_patients_picture_deleting_the_old_one()
+    {
+        Storage::fake();
+        $picture = UploadedFile::fake()->image('old-picture.jpg')->store('pictures');
+        $patient = Patient::factory()->hasAddress()->create(compact('picture'));
+        $newPicture = UploadedFile::fake()->image('new-image.jpg');
+
+        $this->patchJson("/api/patients/{$patient->id}", [
+            'picture' => $newPicture,
+        ]);
+
+        Storage::assertExists('pictures/' . $newPicture->hashName());
+        Storage::assertMissing($picture);
     }
 
     /** @test */
     public function it_deletes_a_patient()
     {
+        Storage::fake();
         $patient = Patient::factory()->hasAddress()->create();
 
         $response = $this->deleteJson("api/patients/{$patient->id}");
@@ -240,5 +257,18 @@ class PatientControllerTest extends TestCase
         $this
             ->assertDatabaseEmpty('patients')
             ->assertDatabaseEmpty('addresses');
+        Storage::assertMissing('pictures/' . $patient->picture);
+    }
+
+    /** @test */
+    public function it_deletes_a_patients_picture()
+    {
+        Storage::fake();
+        $picture = UploadedFile::fake()->image('picture.jpg')->store('pictures');
+        $patient = Patient::factory()->hasAddress()->create(compact('picture'));
+
+        $this->deleteJson("/api/patients/{$patient->id}");
+
+        Storage::assertMissing($picture);
     }
 }

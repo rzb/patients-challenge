@@ -18,13 +18,11 @@ class StorePatientRequest extends FormRequest
         return true;
     }
 
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
-        $this->merge([
-            'cep' => Str::removeNonDigits($this->cep),
-            'cns' => Str::removeNonDigits($this->cns),
-            'cpf' => Str::removeNonDigits($this->cpf),
-        ]);
+        foreach (['address.cep', 'cns', 'cpf'] as $key) {
+            $this->merge([$key => Str::removeNonDigits($this->input($key))]);
+        }
     }
 
     /**

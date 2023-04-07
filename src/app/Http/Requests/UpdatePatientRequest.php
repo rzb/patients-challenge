@@ -27,7 +27,7 @@ class UpdatePatientRequest extends FormRequest
 
         foreach (['address.cep', 'cns', 'cpf'] as $key) {
             if (! $this->filled($key)) {
-                return;
+                continue;
             }
 
             Arr::set($data, $key, Str::removeNonDigits($this->input($key)));

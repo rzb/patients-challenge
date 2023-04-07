@@ -13,14 +13,18 @@ class ViaCep implements CepClient
     {
         $response = Http::get($this->endpoint($cep));
 
-        return $response->ok() ? new CepResponse(
+        if (! $response->ok() || $response->json('erro')) {
+            return false;
+        }
+
+        return new CepResponse(
             cep: Str::removeNonDigits($response->json('cep')),
             street: $response->json('logradouro'),
             complement: $response->json('complemento'),
             neighborhood: $response->json('bairro'),
             city: $response->json('localidade'),
             uf: $response->json('uf')
-        ) : false;
+        );
     }
 
     protected function endpoint(string ...$options): string
